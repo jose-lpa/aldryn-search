@@ -144,7 +144,7 @@ class TitleIndex(get_index_base()):
 
         if getattr(settings, 'ALDRYN_SEARCH_SITE_FILTERING', False):
             site_pk = Site.objects.get_current().pk
-            queryset.filter(page__site_id=site_pk)
+            return queryset.filter(page__site_id=site_pk)
 
         return queryset
 
