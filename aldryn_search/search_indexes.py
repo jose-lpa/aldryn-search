@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models import Q
 from django.utils import timezone
@@ -12,8 +11,6 @@ from .utils import clean_join, get_index_base, strip_tags
 
 # Backwards compatibility
 _strip_tags = strip_tags
-
-site_pk = Site.objects.get_current().pk
 
 
 class TitleIndex(get_index_base()):
@@ -141,9 +138,14 @@ class TitleIndex(get_index_base()):
         queryset = Title.objects.public().filter(
             Q(page__publication_date__lt=timezone.now()) | Q(page__publication_date__isnull=True),
             Q(page__publication_end_date__gte=timezone.now()) | Q(page__publication_end_date__isnull=True),
-            Q(redirect__exact='') | Q(redirect__isnull=True), page__site_id=site_pk,
+            Q(redirect__exact='') | Q(redirect__isnull=True),
             language=language
         ).select_related('page').distinct()
+
+        if getattr(settings, 'ALDRYN_SEARCH_SITE_FILTERING', False):
+            site_pk = Site.objects.get_current().pk
+            queryset.filter(page__site_id=site_pk)
+
         return queryset
 
     def should_update(self, instance, **kwargs):
